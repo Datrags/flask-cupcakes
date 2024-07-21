@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cupcakes</title>
+</head>
+<style>
+    img {
+        width: 150px;
+        height: 150px
+    }
+</style>
+<body>
+    <h1>Cupcake list</h1>
+    <ol id="cakelist">
+
+    </ol>
+    
+    <h2>Add Cupcake to Database</h2>
+  
+    <input type="text" name="flavor" id="flavor" placeholder="Flavor"/>
+    <input type="text" name="size" id="size" placeholder="Size"/>
+    <input type="text" name="rating" id="rating" placeholder="Rating"/>
+    <input type="text" name="image" id="image" placeholder="Image"/>
+
+    <button id="submit">Add</button>
+  
+    <script src="http://unpkg.com/jquery"></script>
+    <script src="http://unpkg.com/axios/dist/axios.js"></script>
+    <script>
+        const $cakeList =  $("#cakelist")
+
+        async function getCupcakes() {
+            let res = await axios.get("http://127.0.0.1:5000/api/cupcakes");
+            console.log(res.data);
+            let cupcakes = res.data.cupcakes.map( (c) => {
+                return {
+                    id: c.id,
+                    flavor: c.flavor,
+                    image: c.image,
+                    rating: c.rating,
+                    size: c.size
+                }
+            })
+
+            return cupcakes;
+        }
+
+        async function addCupcake(evt) {
+            evt.preventDefault();
+
+            let flavor = $("#flavor").val();
+            let image = $("#image").val();
+            let rating = $("#rating").val();
+            let size = $("#size").val();
+
+            if (image == "") 
+                image = "https://tinyurl.com/demo-cupcake";
+            console.log(image);
+            cupcake = {
+                flavor,
+                rating,
+                size,
+                image
+            }
+            await axios.post("/api/cupcakes", cupcake)
+            .catch(function (err) {
+                console.log(err);
+            })
+    
+            update_list()
+            
+        }
+
+        $("#submit").on("click", addCupcake)
+
+        async function update_list() {
+            $cakeList.empty();
+
+            let cupcakes = await getCupcakes();
+
+            for (cupcake of cupcakes) {
+                const $cake = $(
+                    `<li> <img src="${cupcake.image}"/><br> 
+                        <p>${cupcake.flavor} <br>
+                        Size: ${cupcake.size}<br>
+                        ⭐: ${cupcake.rating}</p>
+                    </li>`
+                )
+                $cakeList.append($cake)
+            }
+
+        }
+
+        $("document").ready(async function() {
+            update_list()
+        })
+    
+    </script>
+</body>
+</html>
